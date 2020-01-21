@@ -37,6 +37,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.views.scroll.ScrollEvent;
 import com.facebook.react.views.scroll.ScrollEventType;
 import com.facebook.react.views.scroll.OnScrollDispatchHelper;
@@ -163,6 +164,14 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     return new RNCWebView(reactContext);
   }
 
+  private void sendEvent(ReactContext reactContext,
+                         String eventName,
+                         @Nullable WritableMap params) {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+      .emit(eventName, params);
+  }
+
   @Override
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   protected WebView createViewInstance(ThemedReactContext reactContext) {
@@ -195,6 +204,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     webView.setDownloadListener(new DownloadListener() {
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         RNCWebViewModule module = getModule(reactContext);
+
+        if (url.startsWith("blob")) {
+          WritableMap params = Arguments.createMap();
+
+          params.putString("blobUrl", url);
+
+          sendEvent(reactContext, "openPDFBlob", params);
+          return;
+        }
 
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
