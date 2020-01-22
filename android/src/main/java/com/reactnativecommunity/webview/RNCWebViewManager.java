@@ -205,45 +205,46 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         RNCWebViewModule module = getModule(reactContext);
 
+        if (url.startsWith("blob") {
+          WritableMap params = Arguments.createMap();
 
-        WritableMap params = Arguments.createMap();
+          params.putString("blobUrl", url);
 
-        params.putString("url", url);
+          sendEvent(reactContext, "openBlobPDF", params);
+          return;
+        }
 
-        sendEvent(reactContext, "openFile", params);
-        return;
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-//         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+        String downloadMessage = "Downloading " + fileName;
 
-//         String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-//         String downloadMessage = "Downloading " + fileName;
+        //Attempt to add cookie, if it exists
+        URL urlObj = null;
+        try {
+          urlObj = new URL(url);
+          String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
+          String cookie = CookieManager.getInstance().getCookie(baseUrl);
+          request.addRequestHeader("Cookie", cookie);
+          System.out.println("Got cookie for DownloadManager: " + cookie);
+        } catch (MalformedURLException e) {
+          System.out.println("Error getting cookie for DownloadManager: " + e.toString());
+          e.printStackTrace();
+        }
 
-//         //Attempt to add cookie, if it exists
-//         URL urlObj = null;
-//         try {
-//           urlObj = new URL(url);
-//           String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
-//           String cookie = CookieManager.getInstance().getCookie(baseUrl);
-//           request.addRequestHeader("Cookie", cookie);
-//           System.out.println("Got cookie for DownloadManager: " + cookie);
-//         } catch (MalformedURLException e) {
-//           System.out.println("Error getting cookie for DownloadManager: " + e.toString());
-//           e.printStackTrace();
-//         }
+        //Finish setting up request
+        request.addRequestHeader("User-Agent", userAgent);
+        request.setTitle(fileName);
+        request.setDescription(downloadMessage);
+        request.allowScanningByMediaScanner();
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
-//         //Finish setting up request
-//         request.addRequestHeader("User-Agent", userAgent);
-//         request.setTitle(fileName);
-//         request.setDescription(downloadMessage);
-//         request.allowScanningByMediaScanner();
-//         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-//         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+        module.setDownloadRequest(request);
 
-//         module.setDownloadRequest(request);
-
-//         if (module.grantFileDownloaderPermissions()) {
-//           module.downloadFile();
-//         }
+        if (module.grantFileDownloaderPermissions()) {
+          module.downloadFile();
+        }
       }
     });
 
