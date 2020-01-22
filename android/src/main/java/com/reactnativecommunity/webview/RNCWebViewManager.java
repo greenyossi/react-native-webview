@@ -205,46 +205,45 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         RNCWebViewModule module = getModule(reactContext);
 
-        if (url.startsWith("blob")) {
-          WritableMap params = Arguments.createMap();
 
-          params.putString("blobUrl", url);
+        WritableMap params = Arguments.createMap();
 
-          sendEvent(reactContext, "openPDFBlob", params);
-          return;
-        }
+        params.putString("url", url);
 
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        sendEvent(reactContext, "openFile", params);
+        return;
 
-        String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
-        String downloadMessage = "Downloading " + fileName;
+//         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
 
-        //Attempt to add cookie, if it exists
-        URL urlObj = null;
-        try {
-          urlObj = new URL(url);
-          String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
-          String cookie = CookieManager.getInstance().getCookie(baseUrl);
-          request.addRequestHeader("Cookie", cookie);
-          System.out.println("Got cookie for DownloadManager: " + cookie);
-        } catch (MalformedURLException e) {
-          System.out.println("Error getting cookie for DownloadManager: " + e.toString());
-          e.printStackTrace();
-        }
+//         String fileName = URLUtil.guessFileName(url, contentDisposition, mimetype);
+//         String downloadMessage = "Downloading " + fileName;
 
-        //Finish setting up request
-        request.addRequestHeader("User-Agent", userAgent);
-        request.setTitle(fileName);
-        request.setDescription(downloadMessage);
-        request.allowScanningByMediaScanner();
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+//         //Attempt to add cookie, if it exists
+//         URL urlObj = null;
+//         try {
+//           urlObj = new URL(url);
+//           String baseUrl = urlObj.getProtocol() + "://" + urlObj.getHost();
+//           String cookie = CookieManager.getInstance().getCookie(baseUrl);
+//           request.addRequestHeader("Cookie", cookie);
+//           System.out.println("Got cookie for DownloadManager: " + cookie);
+//         } catch (MalformedURLException e) {
+//           System.out.println("Error getting cookie for DownloadManager: " + e.toString());
+//           e.printStackTrace();
+//         }
 
-        module.setDownloadRequest(request);
+//         //Finish setting up request
+//         request.addRequestHeader("User-Agent", userAgent);
+//         request.setTitle(fileName);
+//         request.setDescription(downloadMessage);
+//         request.allowScanningByMediaScanner();
+//         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+//         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
 
-        if (module.grantFileDownloaderPermissions()) {
-          module.downloadFile();
-        }
+//         module.setDownloadRequest(request);
+
+//         if (module.grantFileDownloaderPermissions()) {
+//           module.downloadFile();
+//         }
       }
     });
 
