@@ -205,7 +205,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
         RNCWebViewModule module = getModule(reactContext);
 
-        if (url.startsWith("blob") {
+        if (url.startsWith("blob")) {
           WritableMap params = Arguments.createMap();
 
           params.putString("blobUrl", url);
