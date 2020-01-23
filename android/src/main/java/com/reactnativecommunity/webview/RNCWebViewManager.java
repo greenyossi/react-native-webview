@@ -183,6 +183,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     settings.setBuiltInZoomControls(true);
     settings.setDisplayZoomControls(false);
     settings.setDomStorageEnabled(true);
+    settings.setJavaScriptEnabled(true);
+    settings.setAppCachePath(reactContext.getCacheDir().getAbsolutePath());
+    settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+    settings.setDatabaseEnabled(true);
+    settings.setDomStorageEnabled(true);
+    settings.setUseWideViewPort(true);
+    settings.setLoadWithOverviewMode(true);
+    settings.setPluginState(WebSettings.PluginState.ON);
+
+    webView.addJavascriptInterface(new JavaScriptInterface(reactContext), "Android");
 
     settings.setAllowFileAccess(false);
     settings.setAllowContentAccess(false);
@@ -206,11 +216,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         RNCWebViewModule module = getModule(reactContext);
 
         if (url.startsWith("blob")) {
-          WritableMap params = Arguments.createMap();
-
-          params.putString("blobUrl", url);
-
-          sendEvent(reactContext, "openBlobPDF", params);
+          webView.loadUrl(JavaScriptInterface.getBase64StringFromBlobUrl(url));
           return;
         }
 
@@ -414,7 +420,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public void setMessagingEnabled(WebView view, boolean enabled) {
     ((RNCWebView) view).setMessagingEnabled(enabled);
   }
-   
+
   @ReactProp(name = "incognito")
   public void setIncognito(WebView view, boolean enabled) {
     // Remove all previous cookies
@@ -664,7 +670,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         public Bitmap getDefaultVideoPoster() {
           return Bitmap.createBitmap(50, 50, Bitmap.Config.ARGB_8888);
         }
-        
+
         @Override
         public void onShowCustomView(View view, CustomViewCallback callback) {
           if (mVideoView != null) {
@@ -919,8 +925,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       final String url = webView.getUrl();
       if (
         url != null
-        && activeUrl != null
-        && !url.equals(activeUrl)
+          && activeUrl != null
+          && !url.equals(activeUrl)
       ) {
         return;
       }
@@ -1137,16 +1143,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
       if (mOnScrollDispatchHelper.onScrollChanged(x, y)) {
         ScrollEvent event = ScrollEvent.obtain(
-                this.getId(),
-                ScrollEventType.SCROLL,
-                x,
-                y,
-                mOnScrollDispatchHelper.getXFlingVelocity(),
-                mOnScrollDispatchHelper.getYFlingVelocity(),
-                this.computeHorizontalScrollRange(),
-                this.computeVerticalScrollRange(),
-                this.getWidth(),
-                this.getHeight());
+          this.getId(),
+          ScrollEventType.SCROLL,
+          x,
+          y,
+          mOnScrollDispatchHelper.getXFlingVelocity(),
+          mOnScrollDispatchHelper.getYFlingVelocity(),
+          this.computeHorizontalScrollRange(),
+          this.computeVerticalScrollRange(),
+          this.getWidth(),
+          this.getHeight());
 
         dispatchEvent(this, event);
       }
